@@ -14,8 +14,8 @@ class Redis implements Adapter
     const PROMETHEUS_METRIC_KEYS_SUFFIX = '_METRIC_KEYS';
 
     private static $defaultOptions = array();
-    private static $prefix = 'PROMETHEUS_';
 
+    private $prefix = 'PROMETHEUS_';
     private $options;
     private $redis;
 
@@ -54,9 +54,9 @@ class Redis implements Adapter
         self::$defaultOptions = array_merge(self::$defaultOptions, $options);
     }
 
-    public static function setPrefix($prefix)
+    public function setPrefix($prefix)
     {
-        self::$prefix = $prefix;
+        $this->prefix = $prefix;
     }
 
     public function flushRedis()
@@ -129,7 +129,7 @@ LUA
                 $this->toMetricKey($data),
                 json_encode(array('b' => 'sum', 'labelValues' => $data['labelValues'])),
                 json_encode(array('b' => $bucketToIncrease, 'labelValues' => $data['labelValues'])),
-                self::$prefix . Histogram::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX,
+                $this->prefix . Histogram::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX,
                 $data['value'],
                 json_encode($metaData),
             ),
@@ -163,7 +163,7 @@ LUA
             array(
                 $this->toMetricKey($data),
                 $this->getRedisCommand($data['command']),
-                self::$prefix . Gauge::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX,
+                $this->prefix . Gauge::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX,
                 json_encode($data['labelValues']),
                 $data['value'],
                 json_encode($metaData),
@@ -191,7 +191,7 @@ LUA
             array(
                 $this->toMetricKey($data),
                 $this->getRedisCommand($data['command']),
-                self::$prefix . Counter::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX,
+                $this->prefix . Counter::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX,
                 json_encode($data['labelValues']),
                 $data['value'],
                 json_encode($metaData),
@@ -203,7 +203,7 @@ LUA
 
     private function collectHistograms()
     {
-        $keys = $this->redis->sMembers(self::$prefix . Histogram::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
+        $keys = $this->redis->sMembers($this->prefix . Histogram::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
         sort($keys);
         $histograms = array();
         foreach ($keys as $key) {
@@ -277,7 +277,7 @@ LUA
 
     private function collectGauges()
     {
-        $keys = $this->redis->sMembers(self::$prefix . Gauge::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
+        $keys = $this->redis->sMembers($this->prefix . Gauge::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
         sort($keys);
         $gauges = array();
         foreach ($keys as $key) {
@@ -303,7 +303,7 @@ LUA
 
     private function collectCounters()
     {
-        $keys = $this->redis->sMembers(self::$prefix . Counter::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
+        $keys = $this->redis->sMembers($this->prefix . Counter::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
         sort($keys);
         $counters = array();
         foreach ($keys as $key) {
@@ -347,7 +347,7 @@ LUA
      */
     private function toMetricKey(array $data)
     {
-        return implode(':', array(self::$prefix, $data['type'], $data['name']));
+        return implode(':', array($this->prefix, $data['type'], $data['name']));
     }
 
 }
