@@ -204,6 +204,7 @@ LUA
     private function collectHistograms()
     {
         $keys = $this->redis->sMembers($this->prefix . Histogram::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
+        if(!is_array($keys)) { return array(); }
         sort($keys);
         $histograms = array();
         foreach ($keys as $key) {
@@ -278,6 +279,7 @@ LUA
     private function collectGauges()
     {
         $keys = $this->redis->sMembers($this->prefix . Gauge::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
+        if(!is_array($keys)) { return array(); }
         sort($keys);
         $gauges = array();
         foreach ($keys as $key) {
@@ -304,6 +306,7 @@ LUA
     private function collectCounters()
     {
         $keys = $this->redis->sMembers($this->prefix . Counter::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
+        if(!is_array($keys)) { return array(); }
         sort($keys);
         $counters = array();
         foreach ($keys as $key) {
