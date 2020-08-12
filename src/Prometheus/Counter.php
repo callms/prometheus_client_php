@@ -41,7 +41,7 @@ class Counter extends Collector
                 'labelNames' => $this->getLabelNames(),
                 'labelValues' => $labels,
                 'value' => $count,
-                'command' => Adapter::COMMAND_INCREMENT_INTEGER
+                'command' => Adapter::COMMAND_INCREMENT_FLOAT
             )
         );
     }
