@@ -181,7 +181,7 @@ LUA
         unset($metaData['command']);
         $result = $this->redis->eval(<<<LUA
 local result = redis.call(KEYS[2], KEYS[1], KEYS[4], ARGV[1])
-if result == tonumber(ARGV[1]) then
+if math.abs(result - tonumber(ARGV[1])) < 0.001 then
     redis.call('hMSet', KEYS[1], '__meta', ARGV[2])
     redis.call('sAdd', KEYS[3], KEYS[1])
 end
