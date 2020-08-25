@@ -12,7 +12,7 @@ use Prometheus\MetricFamilySamples;
 class Redis implements Adapter
 {
     const PROMETHEUS_METRIC_KEYS_SUFFIX = '_METRIC_KEYS';
-    const MAX_RETRY_OPEN_CONNECTION = 1024;
+    const MAX_RETRY_OPEN_CONNECTION = 10;
 
     private static $defaultOptions = array();
 
@@ -109,6 +109,10 @@ class Redis implements Adapter
                     $this->redis->rawCommand('QUIT');
                     $this->redis->close();
                     @$this->redis->pconnect($this->options['host'], $this->options['port'], $this->options['timeout']);
+                }
+                if(!$isOk) {
+                    sleep (1);
+                    throw new \Exception("could not connect to Redis after " . static::MAX_RETRY_OPEN_CONNECTION . " retries");
                 }
             } else {
                 @$this->redis->connect($this->options['host'], $this->options['port'], $this->options['timeout']);
