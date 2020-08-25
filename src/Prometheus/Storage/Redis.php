@@ -12,6 +12,7 @@ use Prometheus\MetricFamilySamples;
 class Redis implements Adapter
 {
     const PROMETHEUS_METRIC_KEYS_SUFFIX = '_METRIC_KEYS';
+    const MAX_RETRY_OPEN_CONNECTION = 1024;
 
     private static $defaultOptions = array();
 
@@ -88,9 +89,26 @@ class Redis implements Adapter
      */
     private function openConnection()
     {
+        if($this->redis->isConnected()) {
+            return;
+        }
         try {
             if ($this->options['persistent_connections']) {
+                // sometimes PHPRedis gets confused with persistent connections that are no longer working
+                // we work around this bug by sending a PING and making sure we are connected to Redis
+                $isOk = false;
                 @$this->redis->pconnect($this->options['host'], $this->options['port'], $this->options['timeout']);
+                for($i = 0; $i < static::MAX_RETRY_OPEN_CONNECTION; $i++) {
+                    try {
+                        $isOk = $this->redis->ping() === '+PONG';
+                    } catch(\Exception $e) {
+                    }
+                    if($isOk) {
+                        break;
+                    }
+                    $this->redis->close();
+                    @$this->redis->pconnect($this->options['host'], $this->options['port'], $this->options['timeout']);
+                }
             } else {
                 @$this->redis->connect($this->options['host'], $this->options['port'], $this->options['timeout']);
             }
