@@ -31,18 +31,32 @@ class Counter extends Collector
      */
     public function incBy($count, array $labels = array())
     {
-        $this->assertLabelsAreDefinedCorrectly($labels);
+        if(!count($labels)) {
+            $this->storageAdapter->updateCounter(
+                array(
+                    'name' => $this->getName(),
+                    'help' => $this->getHelp(),
+                    'type' => $this->getType(),
+                    'labelNames' => [],
+                    'labelValues' => [],
+                    'value' => $count,
+                    'command' => Adapter::COMMAND_INCREMENT_FLOAT
+                )
+            );
+        } else {
+            $this->assertLabelsAreDefinedCorrectly($labels);
 
-        $this->storageAdapter->updateCounter(
-            array(
-                'name' => $this->getName(),
-                'help' => $this->getHelp(),
-                'type' => $this->getType(),
-                'labelNames' => $this->getLabelNames(),
-                'labelValues' => $labels,
-                'value' => $count,
-                'command' => Adapter::COMMAND_INCREMENT_FLOAT
-            )
-        );
+            $this->storageAdapter->updateCounter(
+                array(
+                    'name' => $this->getName(),
+                    'help' => $this->getHelp(),
+                    'type' => $this->getType(),
+                    'labelNames' => $this->getLabelNames(),
+                    'labelValues' => $labels,
+                    'value' => $count,
+                    'command' => Adapter::COMMAND_INCREMENT_FLOAT
+                )
+            );
+        }
     }
 }
