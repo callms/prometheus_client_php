@@ -106,7 +106,9 @@ class Redis implements Adapter
                     if($isOk) {
                         break;
                     }
-                    $this->redis->rawCommand('QUIT');
+                    if(method_exists('Redis', 'rawCommand')) {
+                        $this->redis->rawCommand('QUIT');
+                    }
                     $this->redis->close();
                     @$this->redis->pconnect($this->options['host'], $this->options['port'], $this->options['timeout']);
                 }
