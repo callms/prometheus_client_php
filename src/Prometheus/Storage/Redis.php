@@ -124,7 +124,7 @@ class Redis implements Adapter
             }
             $this->redis->setOption(\Redis::OPT_READ_TIMEOUT, $this->options['read_timeout']);
         } catch (\RedisException $e) {
-            throw new StorageException("Can't connect to Redis server", 0, $e);
+            throw new StorageException("Can't connect to Redis server: " . $e->getMessage(), 0, $e);
         }
     }
 
