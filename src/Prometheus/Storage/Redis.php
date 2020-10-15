@@ -73,6 +73,7 @@ class Redis implements Adapter
     public function collect()
     {
         $this->openConnection();
+        $this->collectMissing();
         $metrics = $this->collectHistograms();
         $metrics = array_merge($metrics, $this->collectGauges());
         $metrics = array_merge($metrics, $this->collectCounters());
@@ -82,6 +83,34 @@ class Redis implements Adapter
             },
             $metrics
         );
+    }
+
+    /**
+     * Reimport metrics that are missing for the set
+     */
+    private function collectMissing()
+    {
+       $it = NULL;
+        do {
+            $arr_keys = $this->redis->scan($it, $this->prefix . ':*');
+
+            // Redis may return empty results, so protect against that
+            if ($arr_keys !== FALSE) {
+                foreach($arr_keys as $str_key) {
+                    $parts = explode(':', $str_key);
+                    $set = NULL;
+                    switch($parts[1]) {
+                        case 'counter':
+                        case 'gauge':
+                            $set = $this->prefix . $parts[1] . '_METRIC_KEYS';
+                            break;
+                    }
+                    if($set) {
+                        $this->redis->sadd($set, $str_key);
+                    }
+                }
+            }
+        } while ($it > 0);
     }
 
     /**
