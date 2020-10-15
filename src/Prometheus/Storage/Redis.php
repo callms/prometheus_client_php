@@ -129,7 +129,11 @@ class Redis implements Adapter
                 @$this->redis->pconnect($this->options['host'], $this->options['port'], $this->options['timeout']);
                 for($i = 0; $i < static::MAX_RETRY_OPEN_CONNECTION; $i++) {
                     try {
-                        $isOk = $this->redis->ping('+PONG') === '+PONG';
+                        if('2.2.5' === phpversion('redis')) {
+                            $isOk = $this->redis->ping() === '+PONG';
+                        } else {
+                            $isOk = $this->redis->ping('+PONG') === '+PONG';
+                        }
                     } catch(\Exception $e) {
                     }
                     if($isOk) {
